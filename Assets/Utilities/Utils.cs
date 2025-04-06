@@ -24,5 +24,16 @@ public static class Utils
         return (angle < 0) ? angle + 360 : angle; 
     }
     
+    public static void WorldSprtie_Create(Vector3 postion , Vector3 localScale , Color color)
+    {
+        GameObject gameObject = new GameObject("Sprite" , typeof(SpriteRenderer));
+        gameObject.transform.position = postion;
+        gameObject.transform.localScale = localScale;
+
+        gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Square");
+        gameObject.GetComponent<SpriteRenderer>().color = color;
+
+    }
+
 
 }
