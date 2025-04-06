@@ -18,11 +18,13 @@ public class GameHandler : MonoBehaviour
     {
 
         CineMachineTarget();
-
+          
         HandleManualZoom();
 
+        
 
-
+        
+        
 
 
     }
@@ -47,6 +49,22 @@ public class GameHandler : MonoBehaviour
         if (Input.mouseScrollDelta.y < 0)
         {
             zoom += Time.deltaTime * zoomScrollSpeed;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            CinematicBar.ShowBarStatic(200, 2f);
+
+            zoom -= Time.deltaTime * zoomScrollSpeed;
+            virtualCam.GetCameraZoom(zoom);
+
+        }
+        else if (Input.GetKeyUp(KeyCode.Space))
+        {
+            CinematicBar.HideBarStatic(2f);
+
+            zoom += Time.deltaTime * zoomScrollSpeed;
+            virtualCam.GetCameraZoom(zoom);
         }
 
         zoom = Mathf.Clamp(zoom, 5f, 10f);

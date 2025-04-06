@@ -56,7 +56,7 @@ public class PlayerCamera : MonoBehaviour
         float cameraZoom = GetCameraZoomFunc();
 
         float diffCameraZoom = cameraZoom - cam.Lens.OrthographicSize;
-        float camaraZoomSpeed = 1f;
+        float camaraZoomSpeed = 5f;
 
         cam.Lens.OrthographicSize += diffCameraZoom * camaraZoomSpeed * Time.deltaTime;
 

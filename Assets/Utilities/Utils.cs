@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public static class Utils
 {
@@ -35,5 +36,17 @@ public static class Utils
 
     }
 
+    public static void CreateDebugButtonUI(Transform parent , Vector3 anchoredPosition, System.Action ClickFunc , Color color)
+    {
+        GameObject buttonObj = new GameObject("DebugButton", typeof(RectTransform), typeof(UnityEngine.UI.Button) , typeof(Image));
+        buttonObj.GetComponent<Image>().color = color;
 
+
+        buttonObj.GetComponent<RectTransform>().anchoredPosition = anchoredPosition;
+        buttonObj.GetComponent<RectTransform>().sizeDelta = new Vector2(50, 50);
+        buttonObj.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
+        buttonObj.GetComponent<RectTransform>().SetParent(parent, false);
+        buttonObj.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => ClickFunc());
+
+    }
 }
