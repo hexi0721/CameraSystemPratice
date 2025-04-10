@@ -5,9 +5,7 @@ using UnityEngine;
 public class WQ_Guest : MonoBehaviour
 {
 
-    [SerializeField] Vector3 targetPostion;
-
-    // Action action = null;
+    Vector3 targetPostion;
 
     private void Awake()
     {
@@ -16,12 +14,16 @@ public class WQ_Guest : MonoBehaviour
 
     private void Update()
     {
+        HandleMoveMent();
+    }
 
-        float moveSpeed = 1f;
+    private void HandleMoveMent()
+    {
+        float moveSpeed = 5f;
         Vector3 dir = (targetPostion - transform.position).normalized;
         float distance = Vector3.Distance(targetPostion, transform.position);
 
-        if(distance > 0)
+        if (distance > 0)
         {
             Vector3 newMovePosition = transform.position + dir * moveSpeed * Time.deltaTime;
             float newDistance = Vector3.Distance(targetPostion, newMovePosition);
@@ -33,19 +35,19 @@ public class WQ_Guest : MonoBehaviour
 
             transform.position = newMovePosition;
         }
-        
-
-        
     }
 
+    public void MoveTo(Vector3 targetPostion)
+    {
+        this.targetPostion = targetPostion;
 
+    }
     public void MoveTo(Vector3 targetPostion, Action action)
     {
         this.targetPostion = targetPostion;
 
         StartCoroutine(Moving(action));
 
-       
     }
 
     private IEnumerator Moving(Action action)
@@ -58,14 +60,6 @@ public class WQ_Guest : MonoBehaviour
         action?.Invoke();
     }
 
-
-    public void MoveTo(Vector3 targetPostion)
-    {
-        this.targetPostion = targetPostion;
-
-    }
-
-    
     public void DoSomething(Action action)
     {
         

@@ -43,7 +43,7 @@ public static class Utils
 
 
         buttonObj.GetComponent<RectTransform>().anchoredPosition = anchoredPosition;
-        buttonObj.GetComponent<RectTransform>().sizeDelta = new Vector2(50, 50);
+        buttonObj.GetComponent<RectTransform>().sizeDelta = new Vector2(20, 10);
         buttonObj.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
         buttonObj.GetComponent<RectTransform>().SetParent(parent, false);
         buttonObj.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => ClickFunc());

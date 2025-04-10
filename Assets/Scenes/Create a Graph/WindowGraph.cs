@@ -27,8 +27,10 @@ public class WindowGraph : MonoBehaviour
         {
             valueList.Add(UnityEngine.Random.Range(0, 100));
         }
+
+
+        ShowGraph(valueList , (int i) => { return $"Day{i + 1}".ToString();} , (float i) => { return (i > 0) ? Mathf.RoundToInt(i).ToString() : ""; });
         
-        ShowGraph(valueList , (int i) => { return $"Day{i + 1}".ToString();} , (int i) => { return $"${i}".ToString(); });
     }
 
 
@@ -50,7 +52,7 @@ public class WindowGraph : MonoBehaviour
     }
 
 
-    private void ShowGraph(List<int> valueList , Func<int , string> GetAxisLabelX = null , Func<int , string> GetAxisLabelY = null)
+    private void ShowGraph(List<int> valueList , Func<int , string> GetAxisLabelX = null , Func<float , string> GetAxisLabelY = null)
     {
 
         
@@ -61,20 +63,41 @@ public class WindowGraph : MonoBehaviour
 
         if (GetAxisLabelY == null)
         {
-            GetAxisLabelY = (int i) => { return (i).ToString(); };
+            GetAxisLabelY = (float i) => { return (i).ToString(); };
         }
         
 
 
         float height = graphContainer.GetComponent<RectTransform>().sizeDelta.y;
-        float yMax = 100f;
+        
         float xSize = 100f;
+
+
+        float maximumY = float.MinValue;
+        float minimumY = float.MaxValue;
+
+        for(int i = 0;i < valueList.Count;i++)
+        {
+            if (valueList[i] > maximumY)
+            {
+                maximumY = valueList[i];
+            }
+
+            if (valueList[i] < minimumY)
+            {
+                minimumY = valueList[i];
+            }
+        }
+
+        maximumY += ((maximumY - minimumY) * 0.2f);
+        minimumY -= ((maximumY - minimumY) * 0.2f);
+
 
         RectTransform rect = null;
         for (int i = 0; i < valueList.Count; i++)
         {
             float xPos = xSize + i * xSize;
-            float yPos = (valueList[i] / yMax) * height;
+            float yPos = (valueList[i] - minimumY) / (maximumY - minimumY) * height;
             RectTransform circleRect = CreateCircle(new Vector2(xPos, yPos));
 
 
@@ -107,13 +130,15 @@ public class WindowGraph : MonoBehaviour
             }
         }
 
+        // Debug.Log(minimumY + "   " + maximumY);
 
         int yCount = 10;
         for (int i = 0; i <= yCount; i++)
         {
             RectTransform goY = Instantiate(pf_TemplateY, graphContainer).GetComponent<RectTransform>();
             goY.anchoredPosition = new Vector2(0, (i * 1f / yCount) * height);
-            goY.GetComponent<Text>().text = GetAxisLabelY(i * yCount) ;
+            float normalizeValue = i * 1f / yCount;
+            goY.GetComponent<Text>().text = GetAxisLabelY(minimumY + normalizeValue * (maximumY - minimumY)) ;
 
             RectTransform goDashY = Instantiate(dashY, graphContainer).GetComponent<RectTransform>();
             goDashY.anchoredPosition = new Vector2(0, (i * 1f / yCount) * height);

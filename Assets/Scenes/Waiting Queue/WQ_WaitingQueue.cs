@@ -6,6 +6,8 @@ public class WQ_WaitingQueue
     public event EventHandler OnAddGuest;
     public event EventHandler OnGuestArrivedAtFrontOfQueue;
 
+    const float POSITION_SIZE = 1.5f;
+
     List<WQ_Guest> guestList;
     List<Vector3> waitingQueueList;
     Vector3 entrance;
@@ -13,19 +15,67 @@ public class WQ_WaitingQueue
     public WQ_WaitingQueue(List<Vector3> waitingQueueList)
     {
         this.waitingQueueList = waitingQueueList;
-        entrance = waitingQueueList[0] + new Vector3(1.5f , 0); 
-        
-        foreach(var waitingQueue in waitingQueueList)
+
+        CalculateEntrancePosition();
+
+        foreach (var waitingQueue in waitingQueueList)
         {
             Utils.WorldSprtie_Create(waitingQueue, new Vector3(1, 1) * .1f, Color.white);
         }
-
-        Utils.WorldSprtie_Create(entrance, new Vector3(1, 1) * .1f , Color.red);
         
         guestList = new List<WQ_Guest>();
     }
 
-    
+    private void CalculateEntrancePosition()
+    {
+        if (waitingQueueList.Count <= 1)
+        {
+            entrance = waitingQueueList[waitingQueueList.Count - 1] ;
+        }
+        else
+        {
+            Vector3 dir = (waitingQueueList[waitingQueueList.Count - 1] - waitingQueueList[waitingQueueList.Count - 2]).normalized;
+            entrance = waitingQueueList[waitingQueueList.Count - 1] + 1.5f * dir;
+        }
+
+        
+    }
+
+    public void AddPostion(Vector3 position)
+    {
+        waitingQueueList.Add(position);
+        Utils.WorldSprtie_Create(position, new Vector3(1, 1) * .1f, Color.white);
+        CalculateEntrancePosition();
+        Utils.WorldSprtie_Create(entrance, new Vector3(1, 1) * .1f, Color.red);
+    }
+
+    public void AddPositionDown()
+    {
+        AddPostion(waitingQueueList[waitingQueueList.Count - 1] + new Vector3(0, -1) * POSITION_SIZE);
+    }
+    public void AddPositionUp()
+    {
+        AddPostion(waitingQueueList[waitingQueueList.Count - 1] + new Vector3(0, 1) * POSITION_SIZE);
+    }
+    public void AddPositionLeft()
+    {
+        AddPostion(waitingQueueList[waitingQueueList.Count - 1] + new Vector3(-1, 0) * POSITION_SIZE);
+    }
+    public void AddPositionRight()
+    {
+        AddPostion(waitingQueueList[waitingQueueList.Count - 1] + new Vector3(1, 0) * POSITION_SIZE);
+    }
+
+    public void RemovePostion()
+    {
+        if(guestList.Count < waitingQueueList.Count)
+        {
+            waitingQueueList.RemoveAt(waitingQueueList.Count - 1);
+            CalculateEntrancePosition();
+        }
+    }
+
+
     public bool CanAddGuest()
     {
         return guestList.Count < waitingQueueList.Count;
@@ -34,11 +84,8 @@ public class WQ_WaitingQueue
     public void AddGuest(WQ_Guest guest)
     {
         guestList.Add(guest);
-        
         guest.MoveTo(waitingQueueList[guestList.IndexOf(guest)] , () => { GuestArrivedAtQueueOfPositon(guest); });
-
         OnAddGuest?.Invoke(this, EventArgs.Empty);
-
     }
 
     public WQ_Guest GetGuest()
@@ -55,9 +102,6 @@ public class WQ_WaitingQueue
             RelocateAllGuest();
             return guest;
         }
-
-            
-        
     }
 
     private void RelocateAllGuest()
@@ -70,7 +114,7 @@ public class WQ_WaitingQueue
 
     private void GuestArrivedAtQueueOfPositon(WQ_Guest guest)
     {
-        if (guest == guestList[0])
+        if (guestList.Count > 0 &&  guest == guestList[0])
         {
             OnGuestArrivedAtFrontOfQueue?.Invoke(this, EventArgs.Empty);
         }

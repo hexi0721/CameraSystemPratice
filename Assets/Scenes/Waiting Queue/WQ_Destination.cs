@@ -8,12 +8,14 @@ public class WQ_Destination
     WQ_WaitingQueue watingQueue;
     List<DestinationPosition> destinationPositionList;
     Vector3 exitPostion;
+    List<WQ_Guest> guestList;
 
-    public WQ_Destination(WQ_WaitingQueue watingQueue , List<Vector3> postionList, Vector3 exitPostion)
+    public WQ_Destination(WQ_WaitingQueue watingQueue , List<Vector3> postionList, Vector3 exitPostion , List<WQ_Guest> guestList)
     {
         this.watingQueue = watingQueue;
         destinationPositionList = new List<DestinationPosition>();
         this.exitPostion = exitPostion;
+        this.guestList = guestList;
 
         foreach (Vector3 postion in postionList)
         {
@@ -22,7 +24,7 @@ public class WQ_Destination
         }
 
         watingQueue.OnGuestArrivedAtFrontOfQueue += watingQueue_OnGuestArrivedAtFrontOfQueue;
-        this.exitPostion = exitPostion;
+        
     }
 
     private void watingQueue_OnGuestArrivedAtFrontOfQueue(object sender, System.EventArgs e)
@@ -35,7 +37,7 @@ public class WQ_Destination
         DestinationPosition destinationPosition = GetEmpty();
         if (destinationPosition != null)
         {
-            WQ_Guest guest = watingQueue.GetGuest();
+            WQ_Guest guest = watingQueue.GetGuest(); // 會觸發 OnGuestArrivedAtFrontOfQueue 事件
 
             if (guest != null)
             {
@@ -49,6 +51,10 @@ public class WQ_Destination
                         {
                             TrySendGuestToDestination();
                         });
+
+                        guestList.Add(guest);
+                        
+
                     });
                 });
                 
@@ -57,6 +63,7 @@ public class WQ_Destination
         }
 
     }
+
 
     private DestinationPosition GetEmpty()
     {
