@@ -52,7 +52,7 @@ public class WQ_Destination
                             TrySendGuestToDestination();
                         });
 
-                        guestList.Add(guest);
+                        // guestList.Add(guest);
                         
 
                     });

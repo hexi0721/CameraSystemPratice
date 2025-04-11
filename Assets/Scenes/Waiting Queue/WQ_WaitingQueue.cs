@@ -8,7 +8,7 @@ public class WQ_WaitingQueue
 
     const float POSITION_SIZE = 1.5f;
 
-    List<WQ_Guest> guestList;
+    List<WQ_GuestAI> guestAIList;
     List<Vector3> waitingQueueList;
     Vector3 entrance;
 
@@ -23,7 +23,7 @@ public class WQ_WaitingQueue
             Utils.WorldSprtie_Create(waitingQueue, new Vector3(1, 1) * .1f, Color.white);
         }
         
-        guestList = new List<WQ_Guest>();
+        guestAIList = new List<WQ_GuestAI>();
     }
 
     private void CalculateEntrancePosition()
@@ -68,7 +68,7 @@ public class WQ_WaitingQueue
 
     public void RemovePostion()
     {
-        if(guestList.Count < waitingQueueList.Count)
+        if(guestAIList.Count < waitingQueueList.Count)
         {
             waitingQueueList.RemoveAt(waitingQueueList.Count - 1);
             CalculateEntrancePosition();
@@ -78,46 +78,58 @@ public class WQ_WaitingQueue
 
     public bool CanAddGuest()
     {
-        return guestList.Count < waitingQueueList.Count;
+        return guestAIList.Count < waitingQueueList.Count;
     }
+
 
     public void AddGuest(WQ_Guest guest)
     {
-        guestList.Add(guest);
-        guest.MoveTo(waitingQueueList[guestList.IndexOf(guest)] , () => { GuestArrivedAtQueueOfPositon(guest); });
+        
+        WQ_GuestAI guestAI = new WQ_GuestAI(this , guest, entrance);
+        guestAIList.Add(guestAI);
+        // guest.MoveTo(waitingQueueList[guestAIList.IndexOf(guest)] , () => { GuestArrivedAtQueueOfPositon(guest); });
         OnAddGuest?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void GuestRequestSetQueuePosition(WQ_GuestAI guestAI)
+    {
+        guestAI.SetQueuePosition(waitingQueueList[guestAIList.IndexOf(guestAI)]);
     }
 
     public WQ_Guest GetGuest()
     {
-        if(guestList.Count == 0)
+        if(guestAIList.Count == 0)
         {
             return null;
         }
         else
         {
-            WQ_Guest guest = guestList[0];
+            /*
+            WQ_GuestAI guest = guestAIList[0];
             
-            guestList.RemoveAt(guestList.IndexOf(guest));
+            guestAIList.RemoveAt(guestAIList.IndexOf(guest));
             RelocateAllGuest();
             return guest;
+            */
+
+            return null;
         }
     }
 
     private void RelocateAllGuest()
-    {
-        foreach(WQ_Guest guest in guestList)
+    {/*
+        foreach(WQ_GuestAI guest in guestAIList)
         {
-            guest.MoveTo(waitingQueueList[guestList.IndexOf(guest)] , () => { GuestArrivedAtQueueOfPositon(guest); });
-        }
+            guest.MoveTo(waitingQueueList[guestAIList.IndexOf(guest)] , () => { GuestArrivedAtQueueOfPositon(guest); });
+        }*/
     }
 
-    private void GuestArrivedAtQueueOfPositon(WQ_Guest guest)
-    {
-        if (guestList.Count > 0 &&  guest == guestList[0])
+    private void GuestArrivedAtQueueOfPositon(WQ_GuestAI guest)
+    {/*
+        if (guestAIList.Count > 0 &&  guest == guestAIList[0])
         {
             OnGuestArrivedAtFrontOfQueue?.Invoke(this, EventArgs.Empty);
-        }
+        }*/
     }
 
 }
