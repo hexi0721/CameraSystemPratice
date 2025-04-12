@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.UIElements;
 public class WQ_WaitingQueue
 {
     public event EventHandler OnAddGuest;
@@ -30,12 +31,12 @@ public class WQ_WaitingQueue
     {
         if (waitingQueueList.Count <= 1)
         {
-            entrance = waitingQueueList[waitingQueueList.Count - 1] ;
+            entrance = waitingQueueList[^1] ;
         }
         else
         {
-            Vector3 dir = (waitingQueueList[waitingQueueList.Count - 1] - waitingQueueList[waitingQueueList.Count - 2]).normalized;
-            entrance = waitingQueueList[waitingQueueList.Count - 1] + 1.5f * dir;
+            Vector3 dir = (waitingQueueList[^1] - waitingQueueList[^2]).normalized;
+            entrance = waitingQueueList[^1] + 1.5f * dir;
         }
 
         
@@ -51,19 +52,19 @@ public class WQ_WaitingQueue
 
     public void AddPositionDown()
     {
-        AddPostion(waitingQueueList[waitingQueueList.Count - 1] + new Vector3(0, -1) * POSITION_SIZE);
+        AddPostion(waitingQueueList[^1] + new Vector3(0, -1) * POSITION_SIZE);
     }
     public void AddPositionUp()
     {
-        AddPostion(waitingQueueList[waitingQueueList.Count - 1] + new Vector3(0, 1) * POSITION_SIZE);
+        AddPostion(waitingQueueList[^1] + new Vector3(0, 1) * POSITION_SIZE);
     }
     public void AddPositionLeft()
     {
-        AddPostion(waitingQueueList[waitingQueueList.Count - 1] + new Vector3(-1, 0) * POSITION_SIZE);
+        AddPostion(waitingQueueList[^1] + new Vector3(-1, 0) * POSITION_SIZE);
     }
     public void AddPositionRight()
     {
-        AddPostion(waitingQueueList[waitingQueueList.Count - 1] + new Vector3(1, 0) * POSITION_SIZE);
+        AddPostion(waitingQueueList[^1] + new Vector3(1, 0) * POSITION_SIZE);
     }
 
     public void RemovePostion()
@@ -74,7 +75,6 @@ public class WQ_WaitingQueue
             CalculateEntrancePosition();
         }
     }
-
 
     public bool CanAddGuest()
     {
@@ -87,13 +87,30 @@ public class WQ_WaitingQueue
         
         WQ_GuestAI guestAI = new WQ_GuestAI(this , guest, entrance);
         guestAIList.Add(guestAI);
-        // guest.MoveTo(waitingQueueList[guestAIList.IndexOf(guest)] , () => { GuestArrivedAtQueueOfPositon(guest); });
+        
         OnAddGuest?.Invoke(this, EventArgs.Empty);
     }
 
     public void GuestRequestSetQueuePosition(WQ_GuestAI guestAI)
     {
-        guestAI.SetQueuePosition(waitingQueueList[guestAIList.IndexOf(guestAI)]);
+        for(int i = 0; i < waitingQueueList.Count; i++)
+        {
+            if (guestAIList[i] == guestAI)
+            {
+                break;
+            }
+            else
+            {
+                if(!guestAIList[i].IsWaitingInMiddleOfQueue())   // 當有人還沒經過入口，新的客人將取代他的位置 所以兩個位置要交換
+                {
+                    guestAIList[guestAIList.IndexOf(guestAI)] = guestAIList[i];
+                    guestAIList[i] = guestAI;
+                    break;
+                }
+            }
+        }
+
+        guestAI.SetQueuePosition(waitingQueueList[guestAIList.IndexOf(guestAI)] , this);
     }
 
     public WQ_Guest GetGuest()
@@ -104,32 +121,34 @@ public class WQ_WaitingQueue
         }
         else
         {
-            /*
-            WQ_GuestAI guest = guestAIList[0];
             
-            guestAIList.RemoveAt(guestAIList.IndexOf(guest));
+            WQ_Guest guest = guestAIList[0].GetGuest();
+            
+            guestAIList.RemoveAt(0);
             RelocateAllGuest();
             return guest;
-            */
+            
 
-            return null;
         }
     }
 
     private void RelocateAllGuest()
-    {/*
-        foreach(WQ_GuestAI guest in guestAIList)
+    {
+        foreach(WQ_GuestAI guestAI in guestAIList)
         {
-            guest.MoveTo(waitingQueueList[guestAIList.IndexOf(guest)] , () => { GuestArrivedAtQueueOfPositon(guest); });
-        }*/
+            if(guestAI.IsWaitingInMiddleOfQueue())
+            {
+                guestAI.SetQueuePosition(waitingQueueList[guestAIList.IndexOf(guestAI)], this);
+            }
+        }
     }
 
-    private void GuestArrivedAtQueueOfPositon(WQ_GuestAI guest)
-    {/*
-        if (guestAIList.Count > 0 &&  guest == guestAIList[0])
+    public void GuestArrivedAtQueueOfPositon(WQ_GuestAI guestAI)
+    {
+        if (guestAIList.Count > 0 && guestAI == guestAIList[0])
         {
             OnGuestArrivedAtFrontOfQueue?.Invoke(this, EventArgs.Empty);
-        }*/
+        }
     }
 
 }

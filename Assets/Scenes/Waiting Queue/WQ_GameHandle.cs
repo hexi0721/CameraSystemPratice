@@ -7,20 +7,13 @@ using UnityEngine.UI;
 public class WQ_GameHandle : MonoBehaviour
 {
 
-    public static WQ_GameHandle Instance { get; private set; }
+    private List<Vector3> waitingQueueList;
+    [SerializeField] private List<WQ_Guest> guestList;
 
-    List<Vector3> waitingQueueList;
-    [SerializeField] List<WQ_Guest> guestList;
+    private float watingTimer = 0;
+    private WQ_WaitingQueue waitingQueue;
 
-    float watingTimer = 0;
-    WQ_WaitingQueue waitingQueue;
-
-    public Canvas canvas;
-
-    private void Awake()
-    {
-        Instance = this;
-    }
+    [SerializeField] private Canvas canvas;
 
     private void Start()
     {
@@ -32,7 +25,7 @@ public class WQ_GameHandle : MonoBehaviour
             waitingQueueList.Add(startPos - new Vector3(1 , 0) * space * i);
         }
 
-        waitingQueue = new WQ_WaitingQueue(waitingQueueList);
+        waitingQueue = new WQ_WaitingQueue(waitingQueueList); 
 
         Utils.CreateDebugButtonUI(canvas.transform , new Vector3(0, -10) , waitingQueue.AddPositionDown , Color.green);
         Utils.CreateDebugButtonUI(canvas.transform, new Vector3(0, 10), waitingQueue.AddPositionUp, Color.green);

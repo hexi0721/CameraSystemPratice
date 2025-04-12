@@ -13,15 +13,16 @@ public class WQ_Destination
     public WQ_Destination(WQ_WaitingQueue watingQueue , List<Vector3> postionList, Vector3 exitPostion , List<WQ_Guest> guestList)
     {
         this.watingQueue = watingQueue;
+        
         destinationPositionList = new List<DestinationPosition>();
-        this.exitPostion = exitPostion;
-        this.guestList = guestList;
-
         foreach (Vector3 postion in postionList)
         {
             Utils.WorldSprtie_Create(postion, new Vector3(1, 1) * .1f, Color.white);
-            destinationPositionList.Add(new DestinationPosition() { destinationPosition = postion });
+            destinationPositionList.Add(new DestinationPosition(postion));
         }
+
+        this.exitPostion = exitPostion;
+        this.guestList = guestList;
 
         watingQueue.OnGuestArrivedAtFrontOfQueue += watingQueue_OnGuestArrivedAtFrontOfQueue;
         
@@ -42,7 +43,7 @@ public class WQ_Destination
             if (guest != null)
             {
                 destinationPosition.SetGuest(guest);
-                guest.MoveTo(destinationPosition.destinationPosition , () => 
+                guest.MoveTo(destinationPosition.GetPosition(), () => 
                 {
                     guest.DoSomething(() => 
                     {
@@ -50,10 +51,8 @@ public class WQ_Destination
                         guest.MoveTo(exitPostion, () => 
                         {
                             TrySendGuestToDestination();
+                            guestList.Add(guest);
                         });
-
-                        // guestList.Add(guest);
-                        
 
                     });
                 });
@@ -79,8 +78,13 @@ public class WQ_Destination
 
     private class DestinationPosition
     {
-        public WQ_Guest guest;
-        public Vector3 destinationPosition;
+        private WQ_Guest guest;
+        private Vector3 destinationPosition;
+
+        public DestinationPosition(Vector3 destinationPosition)
+        {
+            this.destinationPosition = destinationPosition;
+        }
 
         public bool IsEmpty()
         {
