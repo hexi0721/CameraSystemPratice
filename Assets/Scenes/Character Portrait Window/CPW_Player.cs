@@ -2,27 +2,12 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CPW_Player : MonoBehaviour , IPointerClickHandler
+public class CPW_Player : MonoBehaviour
 {
 
-    private CPW_WindowCharacterPortrait cpw_WindowCharacterPortrait;
-    
-
-    public void SetUp(CPW_WindowCharacterPortrait cpw_WindowCharacterPortrait)
-    {
-        this.cpw_WindowCharacterPortrait = cpw_WindowCharacterPortrait;
-        
-    }
-
-    private void Update()
-    {
-
-        HandleMoveMent();
 
 
-    }
-
-    private void HandleMoveMent()
+    public void HandleManualMoveMent()
     {
         float v = Input.GetAxis("Vertical");
         float h = Input.GetAxis("Horizontal");
@@ -34,11 +19,5 @@ public class CPW_Player : MonoBehaviour , IPointerClickHandler
         }
     }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        Debug.Log("OnPointerClick!");
 
-        cpw_WindowCharacterPortrait.Show(transform);  
-
-    }
 }
