@@ -87,9 +87,6 @@ public class CPW_AI : MonoBehaviour , IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log("OnPointerClick!");
-
-        cpw_WindowCharacterPortrait.CreateWindowPortrait(transform);
-
+        cpw_WindowCharacterPortrait.CreateWindowPortrait(this);
     }
 }

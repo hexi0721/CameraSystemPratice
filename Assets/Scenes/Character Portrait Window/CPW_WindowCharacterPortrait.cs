@@ -7,11 +7,11 @@ public class CPW_WindowCharacterPortrait : MonoBehaviour
 {
 
     [SerializeField] private Transform pf_Window_CharacterPortrait;
-    private Dictionary<Transform, WindowPortrait> windowPortraitDict;
+    private Dictionary<CPW_AI, WindowPortrait> windowPortraitDict;
 
     private void Awake()
     {
-        windowPortraitDict = new Dictionary<Transform, WindowPortrait>();
+        windowPortraitDict = new Dictionary<CPW_AI, WindowPortrait>();
     }
 
     private void LateUpdate()
@@ -21,14 +21,14 @@ public class CPW_WindowCharacterPortrait : MonoBehaviour
             return;
         }
          
-        foreach(var kvp in new Dictionary<Transform, WindowPortrait>(windowPortraitDict))
+        foreach(var kvp in new Dictionary<CPW_AI, WindowPortrait>(windowPortraitDict))
         {
             WindowPortrait windowPortrait = kvp.Value;
 
             if (windowPortrait.LateUpdte())
             {
-                Transform followTransform = windowPortrait.followrPosition;
-                windowPortraitDict.Remove(followTransform);
+                CPW_AI cpw_AI = windowPortrait.cpw_AI;
+                windowPortraitDict.Remove(cpw_AI);
                 
             }
         }
@@ -36,39 +36,44 @@ public class CPW_WindowCharacterPortrait : MonoBehaviour
     }
 
 
-    public void CreateWindowPortrait(Transform followrPosition)
+    public void CreateWindowPortrait(CPW_AI cpw_AI)
     {
         if (windowPortraitDict == null)
         {
-            windowPortraitDict = new Dictionary<Transform, WindowPortrait>();
+            windowPortraitDict = new Dictionary<CPW_AI, WindowPortrait>();
         }
 
-        if(!windowPortraitDict.ContainsKey(followrPosition)){
+        if(!windowPortraitDict.ContainsKey(cpw_AI)){
             Transform TF = Instantiate(pf_Window_CharacterPortrait, transform);
 
-            WindowPortrait windowPortrait = new WindowPortrait(TF, followrPosition);
-            windowPortraitDict.Add(followrPosition , windowPortrait);
+            WindowPortrait windowPortrait = new WindowPortrait(TF, cpw_AI);
+            windowPortraitDict[cpw_AI] = windowPortrait;
         }
 
     }
 
     public class WindowPortrait
     {
-        private Transform TF;
-        public Transform followrPosition { get; private set; }
+        public CPW_AI cpw_AI { get; private set; }
+        private Transform transform;
+        public Transform followrPosition;
+        RectTransform windowPortraitRectTransform;
+        float portraitRectWidth;
+        float portraitRectHeight;
+
         private Transform cam;
 
         private bool IsDestroy;
 
 
-        public WindowPortrait(Transform TF , Transform followrPosition)
+        public WindowPortrait(Transform transform , CPW_AI cpw_AI)
         {
-            this.TF = TF;
-            this.followrPosition = followrPosition;
+            this.transform = transform;
+            followrPosition = cpw_AI.transform;
             
-            cam = TF.Find("Cam_CharacterPortrait");
+            cam = transform.Find("Cam_CharacterPortrait");
 
-            Button Btn_Close = TF.Find("Btn_Close").GetComponent<Button>();
+            Button Btn_Close = transform.Find("Btn_Close").GetComponent<Button>();
             Btn_Close.onClick.AddListener(DestroySelfAction);
 
             IsDestroy = false;
@@ -76,22 +81,48 @@ public class CPW_WindowCharacterPortrait : MonoBehaviour
             RenderTexture renderTexture = new RenderTexture(512 , 512 , 16);
             cam.gameObject.GetComponent<Camera>().targetTexture = renderTexture;
 
-            RawImage rawImage = TF.Find("RawImage").GetComponent<RawImage>();
+            RawImage rawImage = transform.Find("RawImage").GetComponent<RawImage>();
             rawImage.texture = renderTexture;
 
-            RectTransform rectTransform = TF.GetComponent<RectTransform>();
-            rectTransform.anchoredPosition = new Vector2(Random.Range(-100f , 100f) , Random.Range(-100f, 100f));
+            windowPortraitRectTransform = transform.GetComponent<RectTransform>();
+            portraitRectWidth = windowPortraitRectTransform.rect.width;
+            portraitRectHeight = windowPortraitRectTransform.rect.height;
+
 
 
         }
 
         public bool LateUpdte()
         {
+            Vector2 screenPos = Camera.main.WorldToScreenPoint(followrPosition.position);
+            Vector2 newPos = Vector2.zero;
+
+            if (screenPos.x <= Screen.width / 2)
+            {
+                newPos += new Vector2(0, 0);
+            }
+            else if(screenPos.x > Screen.width / 2)
+            {
+                newPos += new Vector2(portraitRectWidth, 0);
+            }
+
+            if (screenPos.y <= Screen.height / 2)
+            {
+                newPos += new Vector2(0, -portraitRectHeight);
+            }
+            else if (screenPos.y > Screen.height / 2)
+            {
+                newPos += new Vector2(0, 0);
+            }
+
+            windowPortraitRectTransform.position = newPos + screenPos;
+
             cam.position = new Vector3(followrPosition.position.x, followrPosition.position.y, Camera.main.transform.position.z);
+
 
             if (IsDestroy)
             {
-                Destroy(TF.gameObject);
+                Destroy(transform.gameObject);
                 return true;
             }
 

@@ -55,46 +55,76 @@ public class CBGWindowBar : MonoBehaviour
         int xCount = list.Count;
         float xSize = graphWidth / (xCount + 1);
 
-
+        BarChartVisual barChartVisual = new BarChartVisual(graph, xSize, .8f, templateBar, Color.green);
         for (int i = 0; i < xCount; i++)
         {
+
+            Vector3 newPosition = new Vector3(xSize + (i * xSize), list[i]);
+            barChartVisual.AddBarVisual(newPosition, maxY);
+
+
             RectTransform x = Instantiate(templateX, graph).GetComponent<RectTransform>();
             x.gameObject.SetActive(true);
-
-            Vector3 newPosition = new Vector3(xSize + (i * xSize), 0);
-            x.anchoredPosition = newPosition;
-
-            CreateBar(newPosition.x , list[i] , maxY);
-
+            x.anchoredPosition = new Vector3(newPosition.x , 0);
             x.GetComponent<Text>().text = (i + 1).ToString();
+
+
         }
 
     }
 
-    private void CreateBar(float positonX, float value , float maxY)
+    private class BarChartVisual
     {
+        RectTransform graph;
+        float width;
+        float multiplier;
+        Transform templateBar;
+        Color color;
 
-        float graphHeight = graph.rect.height;
-        Vector2 size = templateX.rect.size;
-
-        RectTransform bar = Instantiate(templateBar, graph).GetComponent<RectTransform>();
-        bar.gameObject.SetActive(true);
-        bar.sizeDelta = new Vector3(size.x, (value / maxY) * graphHeight);
-        bar.anchoredPosition = new Vector3(positonX, 0);
-
-
-        EventTrigger eventTrigger = bar.GetComponent<EventTrigger>();
-        if (eventTrigger != null)
+        public BarChartVisual(RectTransform graph , float width, float multiplier , Transform templateBar , Color color)
         {
-            EventTrigger.Entry entry = new EventTrigger.Entry
+            this.graph = graph;
+            this.width = width;
+            this.multiplier = multiplier;
+            this.templateBar = templateBar;
+            this.color = color;
+        }
+
+        public void AddBarVisual(Vector2 position, float maxY)
+        {
+            CreateBar(position , maxY);
+        }
+
+        private void CreateBar(Vector2 position, float maxY)
+        {
+
+            float graphHeight = graph.rect.height;
+            
+
+            RectTransform bar = Instantiate(templateBar, graph).GetComponent<RectTransform>();
+            bar.gameObject.SetActive(true);
+            bar.sizeDelta = new Vector3(width * multiplier, (position.y / maxY) * graphHeight);
+            bar.anchoredPosition = new Vector3(position.x, 0);
+
+            bar.GetComponent<Image>().color = color;
+
+
+            EventTrigger eventTrigger = bar.GetComponent<EventTrigger>();
+            if (eventTrigger != null)
             {
-                eventID = EventTriggerType.PointerEnter
-            };
-            entry.callback.AddListener((e) => { Debug.Log($"{value}"); });
-            eventTrigger.triggers.Add(entry);
+                EventTrigger.Entry entry = new EventTrigger.Entry
+                {
+                    eventID = EventTriggerType.PointerEnter
+                };
+                entry.callback.AddListener((e) => { Debug.Log($"{position.y}"); });
+                eventTrigger.triggers.Add(entry);
+            }
+
         }
 
     }
+
+    
 
     private void CreateY(float maxY) 
     {

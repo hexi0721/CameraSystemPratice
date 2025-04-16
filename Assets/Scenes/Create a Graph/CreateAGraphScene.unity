@@ -363,7 +363,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2d6f16e32ac58a4aac137eb03f77776, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  circleSprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
+  dotSprite: {fileID: 21300000, guid: 3c4a151d3767c7247bb0ec0dcc742b6c, type: 3}
   pf_TemplateX: {fileID: 2591815874168634766, guid: af086b7480264654cb1cab272968fb80, type: 3}
   pf_TemplateY: {fileID: 5322766405859519333, guid: 1220f61d2b1ac824b913cb206f3c1f32, type: 3}
   dashX: {fileID: 0}

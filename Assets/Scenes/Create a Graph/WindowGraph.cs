@@ -9,7 +9,7 @@ public class WindowGraph : MonoBehaviour
 {
 
     RectTransform graphContainer;
-    [SerializeField] Sprite circleSprite;
+    [SerializeField] Sprite dotSprite;
 
     [SerializeField] RectTransform pf_TemplateX , pf_TemplateY;
     [SerializeField] private RectTransform dashX, dashY;
@@ -28,31 +28,13 @@ public class WindowGraph : MonoBehaviour
             valueList.Add(UnityEngine.Random.Range(0, 100));
         }
 
-
-        ShowGraph(valueList , -1 , (int i) => { return $"Day{i + 1}".ToString();} , (float i) => { return (i != -1f) ? Mathf.RoundToInt(i).ToString() : "" ; });
+        BarChartVisual barChartVisual = new BarChartVisual(graphContainer, 0.8f, Color.green);
+        LineChartVisual lineChartVisual = new LineChartVisual(graphContainer, dotSprite, Color.blue, new Color(1, 1, 1, .5f));
+        ShowGraph(lineChartVisual, valueList , -1 , (int i) => { return $"Day{i + 1}".ToString();} , (float i) => { return (i != -1f) ? Mathf.RoundToInt(i).ToString() : "" ; });
         
     }
 
-
-    private RectTransform CreateCircle(Vector2 anchoredPosition)
-    {
-        GameObject circle = new GameObject("Circle" , typeof(Image) , typeof(EventTrigger));
-        circle.transform.SetParent(graphContainer, false);
-        circle.GetComponent<Image>().sprite = circleSprite;
-
-        RectTransform rect = circle.GetComponent<RectTransform>();
-        rect.anchoredPosition = anchoredPosition;
-        rect.sizeDelta = new Vector2(20f, 20f);
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.zero;
-
-        
-
-        return rect;
-    }
-
-
-    private void ShowGraph(List<int> valueList ,int maxVisibleValueAmount = -1, Func<int , string> GetAxisLabelX = null , Func<float , string> GetAxisLabelY = null)
+    private void ShowGraph(IGraphVisual iGraphVisual , List<int> valueList ,int maxVisibleValueAmount = -1, Func<int , string> GetAxisLabelX = null , Func<float , string> GetAxisLabelY = null)
     {
 
         /*
@@ -69,7 +51,6 @@ public class WindowGraph : MonoBehaviour
 
         float height = graphContainer.GetComponent<RectTransform>().sizeDelta.y;
         float width = graphContainer.GetComponent<RectTransform>().sizeDelta.x;
-        
 
         float maximumY = float.MinValue;
         float minimumY = float.MaxValue;
@@ -78,8 +59,6 @@ public class WindowGraph : MonoBehaviour
         {
             maxVisibleValueAmount = valueList.Count;
         }
-
-        
 
         for (int i = Mathf.Max(valueList.Count - maxVisibleValueAmount , 0); i < valueList.Count; i++)
         {
@@ -105,21 +84,15 @@ public class WindowGraph : MonoBehaviour
 
         float xSize = width / (maxVisibleValueAmount + 1);
         int xIndex = 0;
-        RectTransform rect = null;
+        
+
+        
         for (int i = Mathf.Max(valueList.Count - maxVisibleValueAmount , 0); i < valueList.Count; i++)
         {
             float xPos = xSize + xIndex * xSize;
             float yPos = (valueList[i] - minimumY) / (maximumY - minimumY) * height;
-            RectTransform circleRect = CreateCircle(new Vector2(xPos, yPos));
-
-
-            if (rect != null)
-            {
-                CreateConnection(rect.anchoredPosition, circleRect.anchoredPosition);
-            }
-
-            rect = circleRect;
-
+            
+            iGraphVisual.AddGraphVisual(new Vector2(xPos, yPos), xSize, i, valueList);
 
             RectTransform goX = Instantiate(pf_TemplateX, graphContainer).GetComponent<RectTransform>();
             goX.anchoredPosition = new Vector2(xPos, 0);
@@ -128,23 +101,9 @@ public class WindowGraph : MonoBehaviour
             RectTransform goDashX = Instantiate(dashX, graphContainer).GetComponent<RectTransform>();
             goDashX.anchoredPosition = new Vector2(xPos, 0);
 
-            EventTrigger eventTrigger = rect.GetComponent<EventTrigger>();
-            if (eventTrigger != null)
-            {
-                int tempI = i;
-                EventTrigger.Entry entry = new EventTrigger.Entry
-                {
-                    eventID = EventTriggerType.PointerEnter
-                };
-                entry.callback.AddListener((e) => OnPointerEnterHover(tempI + 1, valueList[tempI]));
-                eventTrigger.triggers.Add(entry);
-
-            }
-
             xIndex++;
         }
 
-        // Debug.Log(minimumY + "   " + maximumY);
         int yCount = 10;
         for (int i = 0; i <= yCount; i++)
         {
@@ -172,28 +131,131 @@ public class WindowGraph : MonoBehaviour
         
     }
 
-    private void CreateConnection(Vector2 dotA , Vector2 dotB)
+    
+    public interface IGraphVisual
     {
-        Vector2 dir = (dotB - dotA).normalized;
-        float distance = Vector2.Distance(dotA, dotB);
-
-        GameObject go = new GameObject("Line", typeof(Image));
-
-        go.transform.SetParent(graphContainer, false);
-        go.GetComponent<Image>().color = Color.red;
-        RectTransform rect = go.GetComponent<RectTransform>();
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.zero;
-        rect.sizeDelta = new Vector2(distance , 5f);
-        rect.pivot = new Vector2(0f, 0.5f);
-        rect.anchoredPosition = dotA;
-        rect.localEulerAngles = new Vector3(0f, 0f, Utils.GetAngleFromVector(dir));
-        
+        public RectTransform AddGraphVisual(Vector2 graphPostion, float graphPositionWidth, int i, List<int> valueList);
     }
 
-    private void OnPointerEnterHover(float x , float y)
+    public class BarChartVisual : IGraphVisual
     {
-        Debug.Log($"{x} , {y}");
+
+        RectTransform graphContainer;
+        float multiplier;
+        Color color;
+
+        public BarChartVisual(RectTransform graphContainer, float multiplier, Color color )
+        {
+            this.graphContainer = graphContainer;
+            this.multiplier = multiplier;
+            this.color = color;
+        }
+
+        public RectTransform AddGraphVisual(Vector2 graphPostion, float graphPositionWidth , int i , List<int> valueList)
+        {
+            RectTransform rect = CreateBar(graphPostion, graphPositionWidth * multiplier , i , valueList);
+
+            return rect;
+
+        }
+
+        private RectTransform CreateBar(Vector2 graphPostion, float graphPositionWidth, int i, List<int> valueList)
+        {
+            GameObject dot = new GameObject("Bar", typeof(Image), typeof(EventTrigger));
+            dot.transform.SetParent(graphContainer, false);
+
+            RectTransform rect = dot.GetComponent<RectTransform>();
+            rect.anchoredPosition = new Vector2(graphPostion.x, 0);
+            rect.sizeDelta = new Vector2(graphPositionWidth, graphPostion.y);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.zero;
+            rect.pivot = new Vector2(0.5f, 0f);
+
+            rect.GetComponent<Image>().color = color;
+
+            EventTrigger eventTrigger = rect.GetComponent<EventTrigger>();
+            if (eventTrigger != null)
+            {
+                EventTrigger.Entry entry = new EventTrigger.Entry
+                {
+                    eventID = EventTriggerType.PointerEnter
+                };
+                entry.callback.AddListener((e) => { Debug.Log($"{i}  , {valueList[i]} "); });
+                eventTrigger.triggers.Add(entry);
+            }
+
+            return rect;
+        }
+
+
     }
+
+    public class LineChartVisual : IGraphVisual
+    {
+        RectTransform graphContainer;
+        Sprite dotSprite;
+        Color dotColor;
+        Color lineColor;
+        RectTransform rect;
+
+        public LineChartVisual(RectTransform graphContainer, Sprite dotSprite ,Color dotColor , Color lineColor)
+        {
+            this.graphContainer = graphContainer;
+            this.dotSprite = dotSprite;
+            this.dotColor = dotColor;
+            this.lineColor = lineColor;
+
+            rect = null;
+        }
+        public RectTransform AddGraphVisual(Vector2 graphPostion, float graphPositionWidth, int i, List<int> valueList)
+        {
+            RectTransform dotRect = CreateDot(graphPostion);
+
+            if (rect != null)
+            {
+                CreateConnection(rect.anchoredPosition, dotRect.anchoredPosition);
+            }
+
+            rect = dotRect;
+            return rect;
+        }
+
+        private RectTransform CreateDot(Vector2 anchoredPosition)
+        {
+            GameObject dot = new GameObject("Dot", typeof(Image), typeof(EventTrigger));
+            dot.transform.SetParent(graphContainer, false);
+            dot.GetComponent<Image>().sprite = dotSprite;
+            dot.GetComponent<Image>().color = dotColor;
+
+            RectTransform rect = dot.GetComponent<RectTransform>();
+            rect.anchoredPosition = anchoredPosition;
+            rect.sizeDelta = new Vector2(20f, 20f);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.zero;
+
+            return rect;
+        }
+
+        private void CreateConnection(Vector2 dotA, Vector2 dotB)
+        {
+            Vector2 dir = (dotB - dotA).normalized;
+            float distance = Vector2.Distance(dotA, dotB);
+
+            GameObject go = new GameObject("Line", typeof(Image));
+
+            go.transform.SetParent(graphContainer, false);
+            go.GetComponent<Image>().color = lineColor;
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.zero;
+            rect.sizeDelta = new Vector2(distance, 5f);
+            rect.pivot = new Vector2(0f, 0.5f);
+            rect.anchoredPosition = dotA;
+            rect.localEulerAngles = new Vector3(0f, 0f, Utils.GetAngleFromVector(dir));
+
+        }
+    }
+
+
 
 }
