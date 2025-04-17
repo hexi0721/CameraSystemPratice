@@ -1,20 +1,43 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class CPW_AI : MonoBehaviour , IPointerClickHandler
 {
     [SerializeField] private CPW_WindowCharacterPortrait cpw_WindowCharacterPortrait;
-    
+    CPW_CharacterScriptableObject cpw_CharacterScriptableObject;
     int stat = 0;
     float moveTimer = 1f;
 
-    public void SetUp(CPW_WindowCharacterPortrait cpw_WindowCharacterPortrait)
+    float addExpTimer;
+    float addExpMaxTimer = .025f;
+
+    public void SetUp(CPW_WindowCharacterPortrait cpw_WindowCharacterPortrait , CPW_CharacterScriptableObject cpw_CharacterScriptableObject)
     {
         this.cpw_WindowCharacterPortrait = cpw_WindowCharacterPortrait;
-        
+        this.cpw_CharacterScriptableObject = cpw_CharacterScriptableObject;
+
+        cpw_CharacterScriptableObject.TF = transform;
+
+        addExpTimer = addExpMaxTimer;
     }
 
+
     private void Update()
+    {
+        HandleMovement();
+        addExpTimer -= Time.deltaTime;
+        if (addExpTimer <= 0f)
+        {
+            addExpTimer += addExpMaxTimer;
+            cpw_CharacterScriptableObject.AddExp(1);
+
+            
+        }
+
+    }
+
+    private void HandleMovement()
     {
         float moveSpeed = 2f;
         switch (stat)
@@ -81,12 +104,10 @@ public class CPW_AI : MonoBehaviour , IPointerClickHandler
                 break;
 
         }
-
-
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        cpw_WindowCharacterPortrait.CreateWindowPortrait(this);
+        cpw_WindowCharacterPortrait.CreateWindowPortrait(cpw_CharacterScriptableObject);
     }
 }
